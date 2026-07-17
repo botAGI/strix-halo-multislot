@@ -20,7 +20,7 @@ image digest). Where a result may not generalize, the tables say so.
 |---|---|---|
 | Multi-user chat, screening | Gemma4 26B A4B, `-np 32`, 32 clients | **236 tok/s** aggregate (75s runs; run-to-run spread 235-246), ~8 tok/s per request |
 | Endurance | same, 30 min non-stop, 32 clients | **226 tok/s** average, 78°C, no throttling, 1.4% responses without `timings` counted as errors |
-| Multi-user Qwen | Qwen3.6-35B-A3B Q4_0, `-np 32` | 181 tok/s aggregate |
+| Multi-user Qwen | Qwen3.6-35B-A3B Q4_0, `-np 32` | 178 tok/s aggregate (median of 3) |
 | Single-user chat | Qwen3.6 UD-Q4_K_M + MTP | **~90 tok/s** per stream (median of 3) |
 | Embed (bge-m3) | `--parallel 8` | 255 rps |
 | Rerank (bge-reranker-v2-m3) | 4+ slots | ~7 rps (saturated) |
@@ -67,9 +67,10 @@ some early runs used the b9049 pin, tables mark which).
    +40% at 1, +21% at 2, −31% at 4, −33% at 32 (acceptance 69-74%). Google's own
    materials report ~2.2× MTP speedups at batch 4-8 on Apple Silicon and similar
    gains on A100, so treat the crossover as stack-dependent, not universal.
-3. **Quants aren't equal under batching.** On this testbed Q4_0 was fastest at 32
-   requests, Q4_K_M at 1 (up to 10% apart; single screening runs, quality not
-   evaluated — measure quality before picking a production quant).
+3. **Quants aren't equal.** On the tuned testbed Q4_0 led at every concurrency
+   level, up to 11% at batch (medians of 3 runs). Early single runs on the untuned
+   node suggested Q4_K_M wins single-stream; repeats overturned that. Quality was
+   not evaluated — measure it before picking a production quant.
 4. **The kernel-tuning set (4 parameters together) bought +7-8% generation** in a
    reboot A/B with the kernel pinned. Per-parameter contributions were not isolated.
 5. **`--parallel` defaults to -1 (auto), and auto currently resolves to 4 slots**
