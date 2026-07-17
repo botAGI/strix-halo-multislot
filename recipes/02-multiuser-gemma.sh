@@ -1,9 +1,13 @@
 #!/bin/bash
-# Лучший агрегат кампании: Gemma4 26B A4B QAT, 32 слота, 236 tok/s суммарно.
+# Лучший агрегат кампании: Gemma4 26B A4B QAT, 32 слота, 236 tok/s суммарно
+# (скрининг 75с; за 30 мин непрерывно в среднем 226).
 # Модель: unsloth/gemma-4-26B-A4B-it-qat-GGUF, файл UD-Q4_K_XL (~16 GB).
-# Дистилляция: dense-attention MoE масштабируется монотонно — никаких «долин».
-# ВАЖНО: без MTP-драфта. На насыщенном батче GPU compute-bound и драфт — чистый
-# налог (замерено: с MTP на 32 потоках −33%). MTP — см. 04-single-user-mtp.sh.
+# Архитектура: MoE (3.8B активных из 25.2B), softmax-внимание с чередованием
+# sliding-window и global слоёв 5:1. На этом стенде масштабируется монотонно,
+# без «долин» — в отличие от linear-attention-гибрида Qwen3.6.
+# ВАЖНО: без MTP-драфта. На НАШЕМ стеке (Vulkan/RADV) MTP на 32 запросах
+# отнимал треть агрегата; Google для своих стеков заявляет обратное на batch
+# 4-8, так что точка перегиба зависит от стека. MTP — см. 04-single-user-mtp.sh.
 set -e
 MODELS_DIR="${MODELS_DIR:-/var/lib/agmind/models}"
 IMAGE="ghcr.io/ggml-org/llama.cpp@sha256:25932f6dde7478203be75a04651d210ff1a5f0ac7877fb61f4fa622943bea6df"

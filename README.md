@@ -2,62 +2,80 @@
 
 **English** · [Русский](README.ru.md)
 
-Multi-slot LLM inference recipes and honest benchmarks for AMD Strix Halo
-(Ryzen AI Max+ 395, Radeon 8060S, 128 GB unified memory). One mini-PC serves 32
-concurrent streams at **236 tok/s aggregate** (Gemma4 26B A4B, llama.cpp Vulkan/RADV),
-sustains it for 30 minutes without throttling, and reaches **~90 tok/s single-stream**
-with the built-in MTP draft. Everything here reproduces on any Strix Halo mini-PC in
-an evening: launch scripts in `recipes/`, harnesses in `bench/`, full tables in `results/`.
+Multi-slot LLM inference recipes and benchmarks for AMD Strix Halo
+(Ryzen AI Max+ 395, Radeon 8060S, 128 GB unified memory). One mini-PC reaches
+**236 tok/s aggregate over 32 concurrent requests** in 75-second screening runs
+(~8 tok/s per request) and **averages 226 tok/s over a 30-minute sustained run**
+at 78°C with no throttling. With the built-in MTP draft a single stream reaches
+**~90 tok/s**. Everything reproduces on any Strix Halo mini-PC in an evening:
+launch scripts in `recipes/`, harnesses in `bench/`, tables in `results/`,
+raw per-run data in `results/raw/`.
+
+All numbers are measurements of THIS testbed (llama.cpp Vulkan/RADV, pinned
+image digest). Where a result may not generalize, the tables say so.
 
 ## Headline numbers
 
 | Scenario | Config | Result |
 |---|---|---|
-| Multi-user chat | Gemma4 26B A4B, `-np 32` | **236 tok/s** aggregate, 32 streams |
-| Endurance | same, 30 min non-stop | **226 tok/s** average, 78°C, no throttling |
+| Multi-user chat, screening | Gemma4 26B A4B, `-np 32`, 32 clients | **236 tok/s** aggregate (75s runs; run-to-run spread 235-246), ~8 tok/s per request |
+| Endurance | same, 30 min non-stop, 32 clients | **226 tok/s** average, 78°C, no throttling, 1.4% responses without `timings` counted as errors |
 | Multi-user Qwen | Qwen3.6-35B-A3B Q4_0, `-np 32` | 181 tok/s aggregate |
-| Single-user chat | Qwen3.6 UD-Q4_K_M + MTP | **~90 tok/s** per stream |
+| Single-user chat | Qwen3.6 UD-Q4_K_M + MTP | **~90 tok/s** per stream (median of 3) |
 | Embed (bge-m3) | `--parallel 8` | 255 rps |
-| Rerank (bge-reranker-v2-m3) | `--parallel 4+` | ~7 rps (saturated) |
+| Rerank (bge-reranker-v2-m3) | 4+ slots | ~7 rps (saturated) |
 
 Hardware: Beelink GTR9 Pro (Ryzen AI Max+ 395, Radeon 8060S gfx1151, 128 GB LPDDR5X),
 Ubuntu, kernel 6.17, Mesa/RADV, llama.cpp `server-vulkan`
-(`ghcr.io/ggml-org/llama.cpp@sha256:25932f6dde7478203be75a04651d210ff1a5f0ac7877fb61f4fa622943bea6df`).
+(`ghcr.io/ggml-org/llama.cpp@sha256:25932f6dde7478203be75a04651d210ff1a5f0ac7877fb61f4fa622943bea6df`;
+some early runs used the b9049 pin, tables mark which).
 
 ## What's inside
 
-- `recipes/01-node-tuning.md` — kernel parameters (mandatory: +7-8% generation and a
-  2× larger GTT pool; without them two large models won't fit).
-- `recipes/02-multiuser-gemma.sh` — best aggregate (236 tok/s).
+- `recipes/01-node-tuning.md` — kernel parameters: the 4-parameter set bought +7-8%
+  generation and a 2× larger GTT pool in a reboot A/B; read the caveats before applying.
+- `recipes/02-multiuser-gemma.sh` — best aggregate (236 tok/s screening / 226 sustained).
 - `recipes/03-multiuser-qwen.sh` — Qwen3.6 in multi-slot and quant choice.
 - `recipes/04-single-user-mtp.sh` — single-stream maximum (built-in MTP draft).
 - `recipes/05-embed-rerank.sh` — RAG side-services: embed/rerank parallelism.
 - `recipes/TROUBLESHOOTING.md` — hard-won gotchas, from numeric GIDs to `-fit off`.
 - `bench/` — harnesses (Python + requests, no host dependencies).
 - `results/RESULTS.md` — full tables, including failures and refuted hypotheses.
+- `results/raw/` — per-run outputs, per-minute sustained series, GPU telemetry.
 
 ## Methodology
 
 - Unique salted prompts, `cache_prompt: false` — the cache doesn't cheat for you.
 - Metrics come from server `timings`; aggregate = Σ predicted_n / makespan.
-- Screening: 1×75s per config; final numbers: 3 runs, median.
-- Failures are published: the Qwen valley at 16 streams, the MTP tax on batches, the
-  45-second embed stalls — all in `results/`, nothing hidden.
-- Load clients hit the server over the network from a neighboring node, not the box under test.
+  Note: `timings.prompt_ms` is server-side prompt processing time (queue wait
+  excluded); we label it as such, not as client TTFT.
+- Screening: 1×75s per config. Final numbers: 3 runs, median (tables mark the
+  exceptions where fewer runs exist).
+- Load clients hit the server over the network from a neighboring node.
+- Failures and refuted hypotheses are published in `results/RESULTS.md`, section 10 —
+  including two of our own claims that better measurements later overturned.
 
-## Key findings (short)
+## Key findings (short, testbed-scoped)
 
-1. **Model choice matters more than flags.** Dense-attention MoE (Gemma4) scales
-   monotonically to 236; the DeltaNet hybrid (Qwen3.6) has a reproducible "valley" at
-   10-20 streams and a ~180 ceiling — an architecture property, confirmed by controls.
-2. **Speculative decoding (MTP) is a single-user tool.** +40% at 1 stream, +21% at 2,
-   already −31% at 4 and −33% at 32 (acceptance 69-74%). Crossover is 2-3 users.
-3. **Quants aren't equal under batching.** Q4_0 is fastest at 32 streams (cheap dequant),
-   Q4_K_M wins single-stream. Up to 10% difference.
-4. **Kernel tuning is mandatory** and buys exactly +7-8% generation (A/B with reboot,
-   kernel pinned).
-5. **llama-server's default `--parallel` is 4, not 1.** Compare configs by
-   `/props → total_slots`, not by the flag list — we nearly "discovered" a false 2.6× effect this way.
+1. **Model choice matters more than flags here.** Gemma4 26B A4B (an MoE with
+   interleaved sliding-window/global softmax attention) scales monotonically to 236;
+   Qwen3.6-35B-A3B (a linear-attention hybrid: Gated DeltaNet + attention layers)
+   shows a reproducible throughput valley at 10-20 concurrent requests and a ~180
+   ceiling. The effect follows the model, not the build or flags. The root cause is
+   not established — we did not profile the kernels.
+2. **On this stack, speculative decoding (MTP) paid off only at 1-2 streams:**
+   +40% at 1, +21% at 2, −31% at 4, −33% at 32 (acceptance 69-74%). Google's own
+   materials report ~2.2× MTP speedups at batch 4-8 on Apple Silicon and similar
+   gains on A100, so treat the crossover as stack-dependent, not universal.
+3. **Quants aren't equal under batching.** On this testbed Q4_0 was fastest at 32
+   requests, Q4_K_M at 1 (up to 10% apart; single screening runs, quality not
+   evaluated — measure quality before picking a production quant).
+4. **The kernel-tuning set (4 parameters together) bought +7-8% generation** in a
+   reboot A/B with the kernel pinned. Per-parameter contributions were not isolated.
+5. **`--parallel` defaults to -1 (auto), and auto currently resolves to 4 slots**
+   (hardcoded in server.cpp on 2026 builds). A server started without the flag is
+   already multi-slot. Compare configs by `/props → total_slots`, not by flag lists —
+   this mistake almost led us to publish a false 2.6× "finding".
 
 ## License
 
