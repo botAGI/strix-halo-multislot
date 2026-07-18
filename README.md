@@ -59,7 +59,7 @@ some early runs used the b9049 pin, tables mark which).
 
 1. **The 8→10 concurrency cliff is stack-wide, not model-specific.** Both
    architectures and all three quants dip right after 8 concurrent requests
-   (Gemma 158.7→123.7, Qwen Q4_K_M 149→99). The model sets the depth (−22%…−34%),
+   (Gemma 161.4→123.7, Qwen Q4_K_M 149.3→101.5; 3-run medians). The model sets the depth (−23%…−32%),
    the recovery (Gemma is back by 14–16 clients and climbs to 236; Qwen crawls to a
    160–178 ceiling) and therefore still decides your throughput. Root cause not
    established — we did not profile the kernels. The cure is model-specific: capping

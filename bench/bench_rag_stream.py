@@ -79,6 +79,7 @@ def run_level(conc, window=90):
         return
     makespan = max(ts for _, ts in results) - start
     agg = sum(m["pred"] for m, _ in results) / makespan
+    prefill_agg = sum(m["prompt_n"] for m, _ in results) / makespan
     ct = sorted(m["client_ttft"] for m, _ in results)
     pm = sorted(m["prompt_ms"] / 1000 for m, _ in results)
     tot = sorted(m["total"] for m, _ in results)
@@ -86,7 +87,8 @@ def run_level(conc, window=90):
     print(f"c={conc:>2}  err={errors[0]}  req={len(results):>3}  prompt_n~{pn:.0f}  "
           f"клиентский TTFT p50={statistics.median(ct):5.2f}s p95={ct[max(0,int(len(ct)*0.95)-1)]:5.2f}s  "
           f"(серверный prompt p50={statistics.median(pm):5.2f}s)  "
-          f"полный ответ p50={statistics.median(tot):5.1f}s  agg={agg:6.1f} tok/s", flush=True)
+          f"полный ответ p50={statistics.median(tot):5.1f}s  agg={agg:6.1f} tok/s  "
+          f"prefill=Σprompt_n/makespan={prefill_agg:6.0f} tok/s (makespan={makespan:.1f}s)", flush=True)
 
 if __name__ == "__main__":
     win = int(sys.argv[2]) if len(sys.argv) > 2 else 90
