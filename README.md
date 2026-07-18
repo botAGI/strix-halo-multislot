@@ -7,7 +7,7 @@ Multi-slot LLM inference recipes and benchmarks for AMD Strix Halo
 **236 tok/s aggregate over 32 concurrent requests** in 75-second screening runs
 (~8 tok/s per request) and **averages 226 tok/s over a 30-minute sustained run**
 at 78°C with no throttling. With the built-in MTP draft a single stream reaches
-**~90 tok/s**. The procedure reproduces on any Strix Halo mini-PC in an evening:
+**~90 tok/s**. The procedure reproduces in an evening on a comparable Strix Halo with sufficient memory:
 launch scripts in `recipes/`, harnesses in `bench/`, tables in `results/`,
 per-run values for key and final runs in `results/raw/`.
 
@@ -41,7 +41,7 @@ some early runs used the b9049 pin, tables mark which).
 - `recipes/TROUBLESHOOTING.md` — hard-won gotchas, from numeric GIDs to `-fit off`.
 - `bench/` — harnesses (Python + requests, no host dependencies).
 - `results/RESULTS.md` — full tables, including failures and refuted hypotheses.
-- `results/raw/` — per-run outputs, per-minute sustained series, GPU telemetry.
+- `results/raw/` — per-run values, per-minute sustained series, GPU telemetry.
 
 ## Methodology
 
@@ -63,8 +63,9 @@ some early runs used the b9049 pin, tables mark which).
    shows a reproducible throughput valley at 10-20 concurrent requests and a ~180
    ceiling. The effect follows the model, not the build or flags. The root cause is
    not established — we did not profile the kernels.
-2. **On this stack, speculative decoding (MTP) paid off only at 1-2 streams:**
-   +40% at 1, +21% at 2, −31% at 4, −33% at 32 (acceptance 69-74%). Google's own
+2. **On this stack, speculative decoding (MTP) won at the measured points of
+   1 and 2 clients and lost at 4, 8 and 32:** +42%/+21% vs −31%/−25%/−33%
+   (acceptance 69–74%; intermediate levels not measured). Google's own
    materials report ~2.2× MTP speedups at batch 4-8 on Apple Silicon and similar
    gains on A100, so treat the crossover as stack-dependent, not universal.
 3. **Quants aren't equal.** On the tuned testbed Q4_0 led at every concurrency
