@@ -73,8 +73,8 @@ some early runs used the b9049 pin, tables mark which).
    not evaluated — measure it before picking a production quant.
 4. **The kernel-tuning set (4 parameters together) bought +7-8% generation** in a
    reboot A/B with the kernel pinned. Per-parameter contributions were not isolated.
-5. **`--parallel` defaults to -1 (auto), and auto currently resolves to 4 slots**
-   (hardcoded in server.cpp on 2026 builds). A server started without the flag is
+5. **`--parallel` defaults to -1 (auto); in current server.cpp sources auto is
+   hardcoded to 4 slots** (verified on both our images; may change in any build). A server started without the flag is
    already multi-slot. Compare configs by `/props → total_slots`, not by flag lists —
    this mistake almost led us to publish a false 2.6× "finding".
 
