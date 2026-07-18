@@ -18,7 +18,7 @@ image digest). Where a result may not generalize, the tables say so.
 
 | Scenario | Config | Result |
 |---|---|---|
-| Multi-user chat, screening | Gemma4 26B A4B, `-np 32`, 32 clients | **236 tok/s** aggregate (75s runs; run-to-run spread 235-246), ~8 tok/s per request |
+| Multi-user chat, screening | Gemma 4 26B A4B, `-np 32`, 32 clients | **236 tok/s** aggregate (75s runs; run-to-run spread 235–246), ~7 tok/s per request |
 | Endurance | same, 30 min non-stop, 32 clients | **226 tok/s** average, 78°C, no throttling, 1.4% responses without `timings` counted as errors |
 | Multi-user Qwen | Qwen3.6-35B-A3B Q4_0, `-np 32` | 178 tok/s aggregate (median of 3) |
 | Single-user chat | Qwen3.6 UD-Q4_K_M + MTP | **~90 tok/s** per stream (median of 3) |
@@ -57,12 +57,13 @@ some early runs used the b9049 pin, tables mark which).
 
 ## Key findings (short, testbed-scoped)
 
-1. **Model choice matters more than flags here.** Gemma4 26B A4B (an MoE with
-   interleaved sliding-window/global softmax attention) scales monotonically to 236;
-   Qwen3.6-35B-A3B (a linear-attention hybrid: Gated DeltaNet + attention layers)
-   shows a reproducible throughput valley at 10-20 concurrent requests and a ~180
-   ceiling. The effect follows the model, not the build or flags. The root cause is
-   not established — we did not profile the kernels.
+1. **The 8→10 concurrency cliff is stack-wide, not model-specific.** Both
+   architectures and all three quants dip right after 8 concurrent requests
+   (Gemma 158.7→123.7, Qwen Q4_K_M 149→99). The model sets the depth (−22%…−34%),
+   the recovery (Gemma is back by 14–16 clients and climbs to 236; Qwen crawls to a
+   160–178 ceiling) and therefore still decides your throughput. Root cause not
+   established — we did not profile the kernels. Practical rule: keep ≤8 active
+   requests per server process on this stack.
 2. **On this stack, speculative decoding (MTP) won at the measured points of
    1 and 2 clients and lost at 4, 8 and 32:** +42%/+21% vs −31%/−25%/−33%
    (acceptance 69–74%; intermediate levels not measured). Google's own
