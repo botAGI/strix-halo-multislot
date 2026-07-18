@@ -57,7 +57,7 @@ some early runs used the b9049 pin, tables mark which).
 
 ## Key findings (short, testbed-scoped)
 
-1. **The 8→10 concurrency cliff is stack-wide, not model-specific.** Both
+1. **The 8→10 concurrency cliff showed up in all four tested configurations, not just one model.** Both
    architectures and all three quants dip right after 8 concurrent requests
    (Gemma 161.4→123.7, Qwen Q4_K_M 149.3→101.5; 3-run medians). The model sets the depth (−23%…−32%),
    the recovery (Gemma is back by 14–16 clients and climbs to 236; Qwen crawls to a
