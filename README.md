@@ -63,8 +63,8 @@ some early runs used the b9049 pin, tables mark which).
    the recovery (Gemma is back by 14–16 clients and climbs to 236; Qwen crawls to a
    160–178 ceiling) and therefore still decides your throughput. Root cause not
    established — we did not profile the kernels. The cure is model-specific: capping
-   Qwen at ≤8 active requests per process is measured to help; Gemma recovers on its
-   own and a cap would cost her the 236 ceiling.
+   Qwen Q4_K_M at ≤8 active requests per process is measured to help at 16 clients;
+   Gemma recovers on its own and a cap would cost her the 236 ceiling.
 2. **On this stack, speculative decoding (MTP) won at the measured points of
    1 and 2 clients and lost at 4, 8 and 32:** +42%/+21% vs −31%/−25%/−33%
    (acceptance 69–74%; intermediate levels not measured). Google's own
