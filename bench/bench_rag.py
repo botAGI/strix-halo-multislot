@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """RAG-realistic bench: 2-4K token prompts (shuffled corpus paragraphs, salted),
-n_predict=128. Metrics per level: TTFT p50/p95 (prompt_ms), PP tok/s, decode
-per-stream p50, aggregate decode tok/s over makespan.
+n_predict=128. Metrics per level: SERVER prompt processing p50/p95 (prompt_ms; queue wait NOT
+included, this is NOT client TTFT), PP tok/s, decode per-stream p50, aggregate
+decode tok/s over makespan. Historical non-streaming harness; for true client
+TTFT use bench_rag_stream.py.
 Usage: BENCH_BASE=... bench_rag.py 1,4,8,16 [window_s]"""
 import itertools, os, random, statistics, sys, threading, time
 from concurrent.futures import ThreadPoolExecutor
@@ -61,12 +63,12 @@ def run_level(conc, window=90, target_paras=60):
         return
     makespan = max(ts for _, ts in results) - start
     agg = sum(t["predicted_n"] for t, _ in results) / makespan
-    ttft = sorted(t["prompt_ms"] for t, _ in results)
+    prompt = sorted(t["prompt_ms"] for t, _ in results)
     pp = sorted(t["prompt_n"] / (t["prompt_ms"] / 1000) for t, _ in results)
     tps = sorted(t["predicted_per_second"] for t, _ in results)
     pn = statistics.median(t["prompt_n"] for t, _ in results)
     print(f"c={conc:>2}  err={errors[0]}  req={len(results):>3}  prompt_n~{pn:.0f}  "
-          f"TTFT p50={statistics.median(ttft)/1000:5.2f}s p95={ttft[max(0,int(len(ttft)*0.95)-1)]/1000:5.2f}s  "
+          f"prompt p50={statistics.median(prompt)/1000:5.2f}s p95={prompt[max(0,int(len(prompt)*0.95)-1)]/1000:5.2f}s  "
           f"PP p50={statistics.median(pp):6.0f} tok/s  "
           f"decode p50={statistics.median(tps):5.1f}/поток  agg={agg:6.1f} tok/s", flush=True)
 

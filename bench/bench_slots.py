@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Multi-slot generation sweep against llama-server --parallel 32 on Strix-B.
 Per level: N workers issue unique salted prompts (cache_prompt=false), n_predict=128.
-Metrics: aggregate tok/s (sum predicted_n / makespan), per-stream tps, TTFT p50."""
+Metrics: aggregate tok/s (sum predicted_n / makespan), per-stream tps, server prompt processing p50."""
 import itertools, json, random, statistics, subprocess, sys, threading, time
 from concurrent.futures import ThreadPoolExecutor
 
