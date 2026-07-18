@@ -9,7 +9,7 @@
 # отнимал треть агрегата; Google для своих стеков заявляет обратное на batch
 # 4-8, так что точка перегиба зависит от стека. MTP — см. 04-single-user-mtp.sh.
 set -e
-MODELS_DIR="${MODELS_DIR:-/var/lib/agmind/models}"
+MODELS_DIR="${MODELS_DIR:-/var/lib/llm-models}"
 IMAGE="ghcr.io/ggml-org/llama.cpp@sha256:25932f6dde7478203be75a04651d210ff1a5f0ac7877fb61f4fa622943bea6df"
 
 docker run -d --name llm-gemma \

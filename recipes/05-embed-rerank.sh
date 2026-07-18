@@ -11,7 +11,7 @@
 # Rerank строго линеен по документам (~144 док/с): размер пачки влияет только на
 # латентность запроса, не на суммарную пропускную.
 set -e
-MODELS_DIR="${MODELS_DIR:-/var/lib/agmind/models}"
+MODELS_DIR="${MODELS_DIR:-/var/lib/llm-models}"
 IMAGE="ghcr.io/ggml-org/llama.cpp@sha256:25932f6dde7478203be75a04651d210ff1a5f0ac7877fb61f4fa622943bea6df"
 
 docker run -d --name embed \

@@ -11,9 +11,9 @@
 # Qwen3.6 устроен как гибрид линейного внимания (Gated DeltaNet) с attention-слоями;
 # первопричину долины мы не профилировали, так что это наблюдение, не диагноз.
 # Если нагрузка живёт в зоне 10-20 запросов: либо Gemma, либо два сервера по -np 8
-# (для Q4_K_M это дало +38% на 16 клиентах; Q4_0 от второго сервера не выигрывает).
+# (для Q4_K_M это дало +41% на 16 клиентах; Q4_0 от второго сервера не выигрывает).
 set -e
-MODELS_DIR="${MODELS_DIR:-/var/lib/agmind/models}"
+MODELS_DIR="${MODELS_DIR:-/var/lib/llm-models}"
 IMAGE="ghcr.io/ggml-org/llama.cpp@sha256:25932f6dde7478203be75a04651d210ff1a5f0ac7877fb61f4fa622943bea6df"
 
 docker run -d --name llm-qwen \
