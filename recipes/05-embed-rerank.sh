@@ -22,6 +22,7 @@ docker run -d --name embed \
   "$IMAGE" \
   --host 0.0.0.0 --port 8080 --metrics \
   -m /models/bge-m3-Q8_0.gguf \
+  `# sha256 6fae7a1e5c8039c7aff595830fc7b5551b4426bc679f5e526f737e2f63811afa` \
   --embeddings --pooling cls -ngl 999 \
   --ctx-size 16384 --parallel 8
 # ctx = 2048 × parallel: держим 2048 токенов на слот.
@@ -34,6 +35,7 @@ docker run -d --name rerank \
   "$IMAGE" \
   --host 0.0.0.0 --port 8080 --metrics \
   -m /models/bge-reranker-v2-m3-Q8_0.gguf \
+  `# sha256 a43c7c9b11a4c1517e5bf95151960e1621d1b72f7a493364b01e386cf1aaa1d3` \
   --reranking --pooling rank -ngl 999 \
   --ctx-size 32768 --parallel 4
 # ctx = 8192 × parallel: запрос+документ должны влезать в слот.

@@ -28,6 +28,7 @@ docker run -d --name llm-single \
   "$IMAGE" \
   --host 0.0.0.0 --port 8080 --metrics \
   -m /models/Qwen3.6-35B-A3B-UD-Q4_K_M.gguf \
+  `# sha256 0b21525e972670ed59e1812e170b27c26355381f0656ecc4e25617ece7dac58b` \
   -ngl 999 --flash-attn on \
   --cache-type-k q8_0 --cache-type-v q8_0 --no-mmap \
   --ctx-size 65536 --parallel 1 \

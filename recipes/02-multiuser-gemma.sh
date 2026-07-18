@@ -22,6 +22,7 @@ docker run -d --name llm-gemma \
   "$IMAGE" \
   --host 0.0.0.0 --port 8080 --metrics \
   -m /models/gemma-4-26B-A4B-it-UD-Q4_K_XL.gguf \
+  `# sha256 453cf049ba87a29b9ed5739087b84b7fa0265a4f2b11eefa2c77683dec6a8020` \
   -ngl 999 --flash-attn on \
   --ubatch-size 1024 --batch-size 4096 --no-mmap \
   --ctx-size 262144 --parallel 32

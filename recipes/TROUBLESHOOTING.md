@@ -20,9 +20,10 @@
 
 ## MTP / спекулятивный декодинг
 
-- **«[spec] failed to measure draft model memory»** — баг memory-fitting с
-  MTP-драфтами (llama.cpp #24350). Лечится `-fit off`. `-ngld`/`--spec-draft-ngl`
-  НЕ лечат.
+- **«[spec] failed to measure draft model memory»** — совпадающая ошибка описана
+  в открытом НЕПОДТВЕРЖДЁННОМ issue llama.cpp #24350 (там другая платформа:
+  CUDA/Windows); предложенный обход `-fit off` сработал и на Vulkan/RADV.
+  `-ngld`/`--spec-draft-ngl` НЕ лечат.
 - **`/props` показывает `"speculative.types":"none"` при работающем драфте** —
   верьте полям `draft_n`/`draft_n_accepted` в `timings` ответа.
 - **Переименования флагов**: `--draft-max` → `--spec-draft-n-max`;
