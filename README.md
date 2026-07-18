@@ -7,9 +7,9 @@ Multi-slot LLM inference recipes and benchmarks for AMD Strix Halo
 **236 tok/s aggregate over 32 concurrent requests** in 75-second screening runs
 (~8 tok/s per request) and **averages 226 tok/s over a 30-minute sustained run**
 at 78°C with no throttling. With the built-in MTP draft a single stream reaches
-**~90 tok/s**. Everything reproduces on any Strix Halo mini-PC in an evening:
+**~90 tok/s**. The procedure reproduces on any Strix Halo mini-PC in an evening:
 launch scripts in `recipes/`, harnesses in `bench/`, tables in `results/`,
-raw per-run data in `results/raw/`.
+per-run values for key and final runs in `results/raw/`.
 
 All numbers are measurements of THIS testbed (llama.cpp Vulkan/RADV, pinned
 image digest). Where a result may not generalize, the tables say so.

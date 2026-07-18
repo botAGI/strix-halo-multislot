@@ -30,7 +30,7 @@ def one_request(sess, salt):
         return None
     t = r["timings"]
     return dict(pred=t["predicted_n"], tps=t["predicted_per_second"],
-                ttft_ms=t["prompt_ms"], wall=wall)
+                prompt_ms=t["prompt_ms"], wall=wall)
 
 def run_level(conc, window=75):
     results, lock, errors = [], threading.Lock(), [0]
@@ -57,10 +57,10 @@ def run_level(conc, window=75):
     total_pred = sum(m["pred"] for m, _ in results)
     agg = total_pred / makespan
     tps = sorted(m["tps"] for m, _ in results)
-    ttft = sorted(m["ttft_ms"] for m, _ in results)
+    prompt = sorted(m["prompt_ms"] for m, _ in results)
     print(f"c={conc:>2}  err={errors[0]}  req={len(results):>4}  agg={agg:7.1f} tok/s  "
           f"per-stream p50={statistics.median(tps):5.1f} min={tps[0]:5.1f}  "
-          f"TTFT p50={statistics.median(ttft):6.0f}ms p95={ttft[int(len(ttft)*0.95)-1]:6.0f}ms",
+          f"prompt p50={statistics.median(prompt):6.0f}ms p95={prompt[int(len(prompt)*0.95)-1]:6.0f}ms",
           flush=True)
 
 if __name__ == "__main__":
